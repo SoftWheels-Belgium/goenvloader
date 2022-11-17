@@ -12,6 +12,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+func main() {}
+
 // Load read an environment file
 // filename (string) : the path of the environment file
 func Load(filename string, config interface{}) {
