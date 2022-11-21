@@ -39,11 +39,27 @@ type composedStruct struct {
 	subStruct2
 }
 
+type longStruct struct {
+	Name  string
+	Other string
+}
+
+type withoutQuotes struct {
+	Query string
+	Value int
+}
+
 const ENVPATH = "test.env"
 
 func TestGoodStruct(t *testing.T) {
 	s := goodStruct{}
 	goenvloader.Load(ENVPATH, &s)
+	if s.Age != 1 {
+		t.Errorf("Age error : expected 1 but found %d\n", s.Age)
+	}
+	if s.Name != "GOENVLOADER" {
+		t.Errorf("Name error : expected 'GOENVLOADER' but found '%s'\n", s.Name)
+	}
 }
 
 func assertPanic(t *testing.T, s interface{}, errorMessage string) {
@@ -70,4 +86,28 @@ func TestTooSmallStruct(t *testing.T) {
 
 func TestComposedStruct(t *testing.T) {
 	assertPanic(t, &composedStruct{}, "No error found for composed struct")
+}
+
+func TestLongStruct(t *testing.T) {
+	s := longStruct{}
+	goenvloader.Load("./longtest.env", &s)
+	expectedName := "select * from test where test.id > 0"
+	if s.Name != expectedName {
+		t.Errorf("Longenv error : expected '%s' but found '%s'\n", expectedName, s.Name)
+	}
+	if s.Other != "Hello" {
+		t.Errorf("Longenv error : expected 'Hello' but found %s\n", s.Other)
+	}
+}
+
+func TestWithoutQuotes(t *testing.T) {
+	s := withoutQuotes{}
+	goenvloader.Load("./withoutquotes.env", &s)
+	expectedQuery := "select * from test where test.id > 0"
+	if s.Query != expectedQuery {
+		t.Errorf("Withoutquotes error : expected '%s' but found '%s'\n", expectedQuery, s.Query)
+	}
+	if s.Value != 3 {
+		t.Errorf("Withoutquotes error : expected 3 but found %d\n", s.Value)
+	}
 }
