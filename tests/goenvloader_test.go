@@ -49,6 +49,14 @@ type withoutQuotes struct {
 	Value int
 }
 
+type realQueries struct {
+	Resources	string
+	Tyre		string
+	WebParams	string
+	TaskParams	string
+	Scheduler	string
+}
+
 const ENVPATH = "test.env"
 
 func TestGoodStruct(t *testing.T) {
@@ -110,4 +118,9 @@ func TestWithoutQuotes(t *testing.T) {
 	if s.Value != 3 {
 		t.Errorf("Withoutquotes error : expected 3 but found %d\n", s.Value)
 	}
+}
+
+func TestRealQueries(t *testing.T) {
+	s := realQueries{}
+	goenvloader.Load("./realqueries.sql", &s)
 }

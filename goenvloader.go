@@ -13,25 +13,25 @@ import (
 )
 
 func removeCarriageReturn(text string) string {
-	charriage, err := regexp.Compile("[\r\n\t]")
+	charriage, err := regexp.Compile(`[\r\n\t]`)
 	if err != nil {
 		panic(err)
 	}
-	spaceSuccession, err := regexp.Compile("  +")
+	spaceSuccession, err := regexp.Compile(`  +`)
 	if err != nil {
 		panic(err)
 	}
-	reformLines, err := regexp.Compile("(\\w*=)")
+	reformLines, err := regexp.Compile(`(\w+=)`)
 	if err != nil {
 		panic(err)
 	}
-	firstCarriage, err := regexp.Compile("^[\n\r]")
+	firstCarriage, err := regexp.Compile(`^[\n\r]`)
 	if err != nil {
 		panic(err)
 	}
 	refractText := charriage.ReplaceAllString(text, " ")
 	refractText = spaceSuccession.ReplaceAllString(refractText, " ")
-	refractText = reformLines.ReplaceAllString(refractText, "\n${1}")
+	refractText = reformLines.ReplaceAllString(refractText, "\n$1")
 	refractText = firstCarriage.ReplaceAllString(refractText, "")
 	return string(refractText)
 }
@@ -46,7 +46,7 @@ func Load(filename string, config interface{}) {
 	lines := removeCarriageReturn(string(file))
 	input := map[string]interface{}{}
 	for _, line := range strings.Split(lines, "\n") {
-		lineSplitted := strings.Split(line, "=")
+		lineSplitted := strings.SplitN(line, "=", 2)
 		key := strings.Trim(lineSplitted[0], " ")
 		value := strings.Trim(strings.Trim(lineSplitted[1], " "), "\"")
 		realValue, err := strconv.Atoi(value)
