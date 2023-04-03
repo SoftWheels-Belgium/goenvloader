@@ -124,3 +124,26 @@ func TestRealQueries(t *testing.T) {
 	s := realQueries{}
 	goenvloader.Load("./realqueries.sql", &s)
 }
+
+func compareMap(t *testing.T, firstMap, secondMap map[string]string) {
+	for k, v := range firstMap {
+		v2 := secondMap[k]
+		if v != v2 {
+			t.Errorf("Bad value for %s : expected %s but found %s", k, v, v2)
+		}
+	}
+}
+
+func TestLoadToMap(t *testing.T) {
+	env := goenvloader.LoadToMap("./testmap.env")
+	expectedEnv := map[string]string{
+		"key1" : "hello bonjour",
+		"key2" : "test",
+		"key3" : "long long long message",
+	}
+	if len(env) != len(expectedEnv) {
+		t.Errorf("Expected %d elements but found %d", len(expectedEnv), len(env))
+	}
+	compareMap(t, env, expectedEnv)
+	compareMap(t, expectedEnv, env)
+}

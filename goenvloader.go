@@ -29,7 +29,12 @@ func removeCarriageReturn(text string) string {
 	if err != nil {
 		panic(err)
 	}
-	refractText := charriage.ReplaceAllString(text, " ")
+	comments, err := regexp.Compile(`#.*`)
+	if err != nil {
+		panic(err)
+	}
+	refractText := comments.ReplaceAllString(text, "")
+	refractText = charriage.ReplaceAllString(refractText, " ")
 	refractText = spaceSuccession.ReplaceAllString(refractText, " ")
 	refractText = reformLines.ReplaceAllString(refractText, "\n$1")
 	refractText = firstCarriage.ReplaceAllString(refractText, "")
@@ -69,4 +74,20 @@ func Load(filename string, config interface{}) {
 			panic(errors.New("Missing value for " + v.Type().Field(i).Name + " field"))
 		}
 	}
+}
+
+func LoadToMap(filename string) map[string]string {
+	file, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	lines := removeCarriageReturn(string(file))
+	env := make(map[string]string)
+	for _, line := range strings.Split(lines, "\n") {
+		lineSplitted := strings.SplitN(line, "=", 2)
+		key := strings.Trim(lineSplitted[0], " ")
+		value := strings.Trim(strings.Trim(lineSplitted[1], " "), "\"")
+		env[key] = value
+	}
+	return env	
 }
