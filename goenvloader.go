@@ -85,6 +85,11 @@ func LoadToMap(filename string) map[string]string {
 	env := make(map[string]string)
 	for _, line := range strings.Split(lines, "\n") {
 		lineSplitted := strings.SplitN(line, "=", 2)
+		if len(lineSplitted) != 2 {
+			// This is a comment
+			// or a bad line
+			continue
+		}
 		key := strings.Trim(lineSplitted[0], " ")
 		value := strings.Trim(strings.Trim(lineSplitted[1], " "), "\"")
 		env[key] = value
