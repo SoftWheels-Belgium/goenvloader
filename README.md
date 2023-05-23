@@ -1,15 +1,17 @@
 # goenvloader
-goenvloader is a golang package to load any env file
+goenvloader is a golang package to load any *.env* file
 
 # Description
-This package contains only one fonction *Load*.
+You can either load our *.env* into a map[string]string or into a struct.
 
-To use it you have to pass the path of the env file and any structure pointer to get environment data.
+There are two functions :
 
-You can use the *mapstructure* to remap value between your struct and env file.
+- *LoadToMap(filename string) map[string]string* which loads your env file into a map[string]string 
+- *Load(filename string, config interface{})* which loads your env file into a well defined structure
+
+You can use the *mapstructure* to remap value between your struct and the env file.
 
 NB: Do not use composed struct
 
 # How to get ?
-export GOPRIVATE=github.com/JustinCassart/goenvloader
 go get github.com/JustinCassart/goenvloader
