@@ -1,14 +1,12 @@
-package test
+package goenvloader
 
 import (
 	"testing"
-
-	"github.com/JustinCassart/goenvloader"
 )
 
 type goodStruct struct {
 	Name string
-	Age	 int
+	Age  int
 }
 
 type badStruct struct {
@@ -50,18 +48,18 @@ type withoutQuotes struct {
 }
 
 type realQueries struct {
-	Resources	string
-	Tyre		string
-	WebParams	string
-	TaskParams	string
-	Scheduler	string
+	Resources  string
+	Tyre       string
+	WebParams  string
+	TaskParams string
+	Scheduler  string
 }
 
 const ENVPATH = "test.env"
 
 func TestGoodStruct(t *testing.T) {
 	s := goodStruct{}
-	goenvloader.Load(ENVPATH, &s)
+	Load(ENVPATH, &s)
 	if s.Age != 1 {
 		t.Errorf("Age error : expected 1 but found %d\n", s.Age)
 	}
@@ -71,13 +69,9 @@ func TestGoodStruct(t *testing.T) {
 }
 
 func assertPanic(t *testing.T, s interface{}, errorMessage string) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf(errorMessage)
-		}
-	}()
-	goenvloader.Load(ENVPATH, &s)
-
+	if err := Load(ENVPATH, &s); err == nil {
+		t.Errorf(errorMessage)
+	}
 }
 
 func TestBadType(t *testing.T) {
@@ -98,7 +92,7 @@ func TestComposedStruct(t *testing.T) {
 
 func TestLongStruct(t *testing.T) {
 	s := longStruct{}
-	goenvloader.Load("./longtest.env", &s)
+	Load("./longtest.env", &s)
 	expectedName := "select * from test where test.id > 0"
 	if s.Name != expectedName {
 		t.Errorf("Longenv error : expected '%s' but found '%s'\n", expectedName, s.Name)
@@ -110,7 +104,7 @@ func TestLongStruct(t *testing.T) {
 
 func TestWithoutQuotes(t *testing.T) {
 	s := withoutQuotes{}
-	goenvloader.Load("./withoutquotes.env", &s)
+	Load("./withoutquotes.env", &s)
 	expectedQuery := "select * from test where test.id > 0"
 	if s.Query != expectedQuery {
 		t.Errorf("Withoutquotes error : expected '%s' but found '%s'\n", expectedQuery, s.Query)
@@ -122,28 +116,73 @@ func TestWithoutQuotes(t *testing.T) {
 
 func TestRealQueries(t *testing.T) {
 	s := realQueries{}
-	goenvloader.Load("./realqueries.sql", &s)
+	Load("./realqueries.sql", &s)
 }
 
 func compareMap(t *testing.T, firstMap, secondMap map[string]string) {
 	for k, v := range firstMap {
 		v2 := secondMap[k]
 		if v != v2 {
-			t.Errorf("Bad value for %s : expected %s but found %s", k, v, v2)
+			t.Errorf("Bad value for '%s' : expected '%s' but found '%s'", k, v, v2)
 		}
 	}
 }
 
 func TestLoadToMap(t *testing.T) {
-	env := goenvloader.LoadToMap("./testmap.env")
+	env, err := LoadToMap("./testmap.env")
+	if err != nil {
+		t.Error(err)
+	}
 	expectedEnv := map[string]string{
-		"key1" : "hello bonjour",
-		"key2" : "test",
-		"key3" : "long long long message",
+		"key1": "hello bonjour",
+		"key2": "test",
+		"key3": "long long long message",
 	}
 	if len(env) != len(expectedEnv) {
 		t.Errorf("Expected %d elements but found %d", len(expectedEnv), len(env))
 	}
 	compareMap(t, env, expectedEnv)
 	compareMap(t, expectedEnv, env)
+}
+
+func TestPasswordWithHashTag(t *testing.T) {
+	env, err := loadToMap2("./passwordwithhashtag.env")
+	if err != nil {
+		t.Error(err)
+	}
+	expectedEnv := map[string]string{
+		"PASS": "test#123",
+		"USER": "user",
+	}
+	if len(env) != len(expectedEnv) {
+		t.Errorf("Expected %d elements but found %d", len(expectedEnv), len(env))
+	}
+	compareMap(t, env, expectedEnv)
+}
+
+func TestPasswordWithHashTag2(t *testing.T) {
+	env, err := loadToMap3("./passwordwithhashtag.env")
+	if err != nil {
+		t.Error(err)
+	}
+	expectedEnv := map[string]string{
+		"PASS": "test#123",
+		"USER": "user",
+	}
+	if len(env) != len(expectedEnv) {
+		t.Errorf("Expected %d elements but found %d", len(expectedEnv), len(env))
+	}
+	compareMap(t, env, expectedEnv)
+}
+
+func BenchmarkLoadToMap2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		loadToMap2("./passwordwithhashtag.env")
+	}
+}
+
+func BenchmarkLoadToMap3(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		loadToMap3("./passwordwithhashtag.env")
+	}
 }
